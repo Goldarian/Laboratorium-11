@@ -1,0 +1,46 @@
+version: '3'
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - '8080:8080'  # Przekierowanie portu 8080 z hosta na port 8080 kontenera Nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf  # Podmontowanie pliku nginx.conf
+      - ./html:/var/www/html  # Podmontowanie katalogu html
+    networks:
+      - backend  # Podłączenie kontenera do sieci backend
+      - frontend  # Podłączenie kontenera do sieci frontend
+    depends_on:
+      - php  # Zdefiniowanie zależności tak, aby kontener PHP był uruchamiany przed kontenerem Nginx
+
+  php:
+    image: php:7.4-fpm
+    volumes:
+      - ./html:/var/www/html  # Podmontowanie katalogu html
+    networks:
+      - backend  # Podłączenie kontenera do sieci backend
+
+  mysql:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: your_mysql_root_password  # Ustalenie hasła dla konta root w bazie danych MySQL
+    volumes:
+      - ./mysql:/var/lib/mysql  # Podmontowanie katalogu mysql
+    networks:
+      - backend  # Podłączenie kontenera do sieci backend
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    ports:
+      - '6001:80'  # Przekierowanie portu 6001 z hosta na port 80 kontenera phpMyAdmin
+    environment:
+      PMA_HOST: mysql  # Nazwa hosta kontenera MySQL dla phpMyAdmin
+      MYSQL_ROOT_PASSWORD: your_mysql_root_password  # Hasło dla konta root w bazie danych MySQL phpMyAdmin
+    depends_on:
+      - mysql  # Zdefiniowanie zależności, aby kontener MySQL był uruchamiany przed kontenerem phpMyAdmin
+    networks:
+      - backend  # Podłączenie kontenera do sieci backend
+
+networks:
+  backend:
+  frontend:
